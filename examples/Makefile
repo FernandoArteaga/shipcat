@@ -1,5 +1,5 @@
 minikube-create-arch:
-	sudo -E minikube start --driver=none --kubernetes-version v1.15.8 --extra-config kubeadm.ignore-preflight-errors=SystemVerification
+	sudo -E minikube start --driver=none --kubernetes-version v1.16.2 --extra-config kubeadm.ignore-preflight-errors=SystemVerification
 
 create-ns:
 	kubectl create namespace apps

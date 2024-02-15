@@ -16,7 +16,7 @@ spec:
     targetPort: {{ .Values.httpPort }}
     protocol: TCP
     name: http
-{{- if (.Values.health.port) and (not (eq .Values.health.port .Values.httpPort)) }}
+{{- if and (.Values.health.port) (not (eq .Values.health.port .Values.httpPort)) }}
   - port: {{ .Values.health.port }}
     protocol: TCP
     name: health
