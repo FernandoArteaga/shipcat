@@ -12,6 +12,8 @@ vault secrets disable secret
 vault secrets enable -version=1 -path=secret kv
 
 # Start a database for the webapp service
-helm --namespace=apps install --set postgresqlPassword=pw,postgresqlDatabase=webapp -n=webapp-pg stable/postgresql
+helm repo add bitnami https://charts.bitnami.com/bitnami
+helm repo update
+helm install postgresql bitnami/postgresql -n apps --create-namespace --set auth.password=pw --set auth.database=webapp
 # Write its database password in vault
-vault write secret/minikube/webapp/DATABASE_URL value=postgres://postgres:pw@webapp-pg-postgresql.apps/webapp
+vault write secret/webapp/DATABASE_URL value=postgres://postgres:pw@postgresql.apps.svc.cluster.local:5432/webapp
