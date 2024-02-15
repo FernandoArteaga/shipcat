@@ -37,7 +37,7 @@ spec:
 {{- end }}
     spec:
       serviceAccountName: {{ .Values.name }}
-      #imagePullSecrets:
+      imagePullSecrets: []
       containers:
       - name: {{ .Values.name }}
         image: "{{ .Values.image }}:{{ .Values.version }}"
@@ -92,17 +92,16 @@ spec:
         hostAliases:
 {{ toYaml .Values.hostAliases | indent 10 }}
 {{- end }}
-
         env:
-        {{- include "container-env" (merge (dict "root" $) .Values.env) | trim | nindent 8 }}
-        - name: SERVICE_NAME
-          value: {{ .Values.name }}
-        - name: ENV_NAME
-          value: {{ .Values.environment }}
-        - name: REGION_NAME
-          value: {{ .Values.region }}
-        - name: SERVICE_VERSION
-          value: {{ .Values.version }}
+        {{- include "container-env" (merge (dict "root" $) .Values.env) | trim | nindent 10 -}}
+          - name: SERVICE_NAME
+            value: {{ .Values.name }}
+          - name: ENV_NAME
+            value: {{ .Values.environment }}
+          - name: REGION_NAME
+            value: {{ .Values.region }}
+          - name: SERVICE_VERSION
+            value: {{ .Values.version }}
 {{ if .Values.kafka }}
   {{- if .Values.kafka.mountPodIp }}
         - name: HOST_NAME

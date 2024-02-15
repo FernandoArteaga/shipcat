@@ -18,6 +18,9 @@ A cluster defined in `shipcat.conf` (two example environments defined therein), 
 
 More examples in the `Makefile`.
 
+_Make sure the kubernetes version is lower than 1.22, since the `CRD` created by `shipcat` uses the
+`apiVersion: apiextensions.k8s.io/v1beta1` which was deprecated in `v1.16` and removed in `v1.22`_
+
 ### Example 1: Minikube
 A [minikube](https://github.com/kubernetes/minikube) [none driver](https://minikube.sigs.k8s.io/docs/reference/drivers/none/), running in the `apps` namespace:
 
@@ -28,14 +31,14 @@ kubectl create namespace apps
 ```
 
 ### Example 2: Kind
-A [kind](https://github.com/kubernetes-sigs/kind) cluster in the default namespace:
+A [kind](https://github.com/kubernetes-sigs/kind) cluster, configure the kube-context to work with `kind-shipcat` and create the `apps` namespace:
 
 ```sh
-kind create cluster --name shipcat
+make kind
 ```
 
 ## Installation
-The only thing you need to install are the CRDs that shipcat define, which can be done with:
+The only thing you need to install are the CRDs that `shipcat` define, which can be done with:
 
 ```sh
 shipcat cluster crd install
@@ -70,9 +73,11 @@ shipcat diff blog
 
 Note that the `webapp` example requires external dependencies which you can configure with `make integrations` or follow along below.
 
-
 ## Vault Integration
 Secrets are resolved from `vault`, so let's install a sample backend using `docker`:
+
+Requirements:
+- [vault CLI](https://developer.hashicorp.com/vault/tutorials/getting-started/getting-started-install)
 
 ```sh
 docker run --cap-add=IPC_LOCK -e 'VAULT_DEV_ROOT_TOKEN_ID=myroot' -e 'VAULT_DEV_LISTEN_ADDRESS=0.0.0.0:8200' -p 8200:8200 -d --rm --name vault vault:0.11.3
@@ -86,13 +91,15 @@ vault secrets enable -version=1 -path=secret kv
 The `webapp` service relies on having a database. If you want to supply your own working `DATABASE_URL` in vault further down, you can do so yourself. Here is how to do it with [helm 3](https://github.com/helm/helm/releases):
 
 ```sh
-helm install --set postgresqlPassword=pw,postgresqlDatabase=webapp -n=webapp-pg stable/postgresql
+helm repo add bitnami https://charts.bitnami.com/bitnami
+helm repo update
+helm install postgresql bitnami/postgresql -n apps --create-namespace --set image.tag=10.14.0 --set auth.password=pw --set auth.database=webapp
 ```
 
 Then we can write the external `DATABASE_URL` for `webapp`:
 
 ```sh
-vault write secret/example/webapp/DATABASE_URL value=postgres://postgres:pw@webapp-pg-postgresql.apps/webapp
+vault write secret/example/webapp/DATABASE_URL value=postgres://postgres:pw@postgresql.apps.svc.cluster.local:5432/webapp
 ```
 
 You can verify that `shipcat` picks up on this via: `shipcat values -s webapp`.
@@ -150,3 +157,10 @@ shipcat cluster check
 shipcat secret verify-region -r minikube --changed=blog,webapp
 shipcat template webapp | kubeval -v 1.13.8 --strict
 ```
+
+## Clean up
+
+Once you're done, you can remove the k8s cluster:
+
+- Minikube: `make minikube-cleanup`
+- Kind: `make kind-cleanup`
