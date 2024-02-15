@@ -93,7 +93,7 @@ The `webapp` service relies on having a database. If you want to supply your own
 ```sh
 helm repo add bitnami https://charts.bitnami.com/bitnami
 helm repo update
-helm install postgresql bitnami/postgresql -n apps --create-namespace --set auth.password=pw --set auth.database=webapp
+helm install postgresql bitnami/postgresql -n apps --create-namespace --set image.tag=10.14.0 --set auth.password=pw --set auth.database=webapp
 ```
 
 Then we can write the external `DATABASE_URL` for `webapp`:

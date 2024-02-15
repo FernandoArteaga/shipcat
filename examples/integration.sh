@@ -14,6 +14,6 @@ vault secrets enable -version=1 -path=secret kv
 # Start a database for the webapp service
 helm repo add bitnami https://charts.bitnami.com/bitnami
 helm repo update
-helm install postgresql bitnami/postgresql -n apps --create-namespace --set auth.password=pw --set auth.database=webapp
+helm install postgresql bitnami/postgresql -n apps --create-namespace --set image.tag=10.14.0 --set auth.password=pw --set auth.database=webapp
 # Write its database password in vault
 vault write secret/webapp/DATABASE_URL value=postgres://postgres:pw@postgresql.apps.svc.cluster.local:5432/webapp
